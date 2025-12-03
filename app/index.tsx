@@ -1,12 +1,16 @@
 import { CategoryFilter } from '@/components/CategoryFilter';
+import { EditExpenseModal } from '@/components/EditExpenseModal';
 import { ExpenseCard } from '@/components/ExpenseCard';
 import Colors from '@/constants/colors';
+import { useAuth } from '@/context/AuthContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import { useExpenses } from '@/context/ExpenseContext';
+import { useTheme } from '@/context/ThemeContext';
+import { Expense } from '@/types/expense';
 import { exportToCSV } from '@/utils/csv';
 import { useRouter } from 'expo-router';
 import { BarChart3, Camera, Download, Plus, Settings2 } from 'lucide-react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -21,14 +25,26 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
+  const { colors, isDark } = useTheme();
   const {
     filteredExpenses,
     isLoading,
     getCurrentMonthTotal,
     selectedCategory,
     expenses,
+    updateExpense,
+    deleteExpense,
   } = useExpenses();
   const { formatCurrency } = useCurrency();
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+
+  // Auth guard: redirect to sign-in if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/sign-in');
+    }
+  }, [user, authLoading, router]);
 
   const handleExport = async () => {
     try {
@@ -44,12 +60,39 @@ export default function HomeScreen() {
     }
   };
 
+  const handleEdit = (expense: Expense) => {
+    setEditingExpense(expense);
+  };
+
+  const handleDelete = (expense: Expense) => {
+    Alert.alert(
+      'Delete Expense',
+      `Are you sure you want to delete this expense from ${expense.storeName}?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => deleteExpense(expense.id),
+        },
+      ]
+    );
+  };
+
+  const handleSaveEdit = (expense: Expense) => {
+    updateExpense(expense);
+    setEditingExpense(null);
+  };
+
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Loading expenses...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading expenses...</Text>
         </View>
       </SafeAreaView>
     );
@@ -59,10 +102,10 @@ export default function HomeScreen() {
   const monthTotal = getCurrentMonthTotal();
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <View style={styles.totalCard}>
+          <View style={[styles.totalCard, { backgroundColor: colors.primary }]}>
             <Text style={styles.totalLabel}>This Month</Text>
             <Text style={styles.totalAmount}>{formatCurrency(monthTotal)}</Text>
           </View>
@@ -71,14 +114,14 @@ export default function HomeScreen() {
         <CategoryFilter />
 
         <View style={styles.listContainer}>
-          <Text style={styles.sectionTitle}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
             {selectedCategory === 'All' ? 'All Expenses' : `${selectedCategory} Expenses`}
           </Text>
 
           {currentExpenses.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>No expenses yet</Text>
-              <Text style={styles.emptyStateSubtext}>
+              <Text style={[styles.emptyStateText, { color: colors.text }]}>No expenses yet</Text>
+              <Text style={[styles.emptyStateSubtext, { color: colors.textSecondary }]}>
                 Tap the camera button to scan a receipt or add an expense manually
               </Text>
             </View>
@@ -86,7 +129,13 @@ export default function HomeScreen() {
             <FlatList
               data={currentExpenses}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => <ExpenseCard expense={item} />}
+              renderItem={({ item }) => (
+                <ExpenseCard
+                  expense={item}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              )}
               scrollEnabled={false}
               ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
             />
@@ -145,6 +194,13 @@ export default function HomeScreen() {
           <Text style={styles.actionButtonText}>Settings</Text>
         </TouchableOpacity>
       </View>
+
+      <EditExpenseModal
+        visible={editingExpense !== null}
+        expense={editingExpense}
+        onClose={() => setEditingExpense(null)}
+        onSave={handleSaveEdit}
+      />
     </SafeAreaView>
   );
 }

@@ -1,144 +1,139 @@
-import { CATEGORY_COLORS } from '@/constants/categories';
-import Colors from '@/constants/colors';
 import { useCurrency } from '@/context/CurrencyContext';
-import { useExpenses } from '@/context/ExpenseContext';
+import { useTheme } from '@/context/ThemeContext';
 import { Expense } from '@/types/expense';
-import { Trash2 } from 'lucide-react-native';
+import { format } from 'date-fns';
+import { Edit2, Trash2 } from 'lucide-react-native';
 import React from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ExpenseCardProps {
   expense: Expense;
+  onPress?: () => void;
+  onEdit?: (expense: Expense) => void;
+  onDelete?: (expense: Expense) => void;
 }
 
-export function ExpenseCard({ expense }: ExpenseCardProps) {
-  const { deleteExpense } = useExpenses();
+export const ExpenseCard = ({ expense, onPress, onEdit, onDelete }: ExpenseCardProps) => {
   const { formatCurrency } = useCurrency();
+  const { colors } = useTheme();
 
-  const handleDelete = () => {
-    Alert.alert(
-      'Delete Expense',
-      'Are you sure you want to delete this expense?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => deleteExpense(expense.id),
-        },
-      ]
-    );
+  const handleEdit = (e: any) => {
+    e.stopPropagation();
+    onEdit?.(expense);
   };
 
-  const categoryColor = CATEGORY_COLORS[expense.category];
+  const handleDelete = (e: any) => {
+    e.stopPropagation();
+    onDelete?.(expense);
+  };
 
   return (
-    <View style={styles.card}>
-      <View style={[styles.categoryIndicator, { backgroundColor: categoryColor }]} />
-
+    <TouchableOpacity
+      style={[styles.card, { backgroundColor: colors.cardBackground }]}
+      onPress={onPress}
+      activeOpacity={0.7}
+      disabled={!onPress}
+    >
       <View style={styles.content}>
-        <View style={styles.header}>
-          <View style={styles.mainInfo}>
-            <Text style={styles.storeName}>{expense.storeName}</Text>
-            <View style={styles.metaInfo}>
-              <View style={[styles.categoryBadge, { backgroundColor: categoryColor + '20' }]}>
-                <Text style={[styles.categoryText, { color: categoryColor }]}>
-                  {expense.category}
-                </Text>
-              </View>
-              <Text style={styles.date}>{new Date(expense.date).toLocaleDateString()}</Text>
-            </View>
+        <View style={styles.mainInfo}>
+          <View style={styles.headerRow}>
+            <Text style={[styles.merchant, { color: colors.text }]} numberOfLines={1}>
+              {expense.storeName}
+            </Text>
+            <Text style={[styles.amount, { color: colors.text }]}>{formatCurrency(expense.amount)}</Text>
           </View>
 
-          <View style={styles.rightSection}>
-            <Text style={styles.amount}>{formatCurrency(expense.amount)}</Text>
-            <TouchableOpacity
-              onPress={handleDelete}
-              style={styles.deleteButton}
-              accessibilityLabel="Delete expense"
-              accessibilityRole="button"
-            >
-              <Trash2 color={Colors.danger} size={18} />
-            </TouchableOpacity>
+          <View style={styles.detailsRow}>
+            <Text style={[styles.category, { color: colors.textSecondary }]}>{expense.category}</Text>
+            <Text style={[styles.date, { color: colors.textSecondary }]}>
+              {format(new Date(expense.date), 'MMM d, yyyy')}
+            </Text>
           </View>
         </View>
 
-        {expense.notes && (
-          <Text style={styles.notes} numberOfLines={2}>
-            {expense.notes}
-          </Text>
+        {/* Action Buttons */}
+        {(onEdit || onDelete) && (
+          <View style={styles.actionButtons}>
+            {onEdit && (
+              <TouchableOpacity
+                onPress={handleEdit}
+                style={[styles.actionButton, { backgroundColor: colors.primary + '20' }]}
+                activeOpacity={0.7}
+              >
+                <Edit2 size={18} color={colors.primary} />
+              </TouchableOpacity>
+            )}
+            {onDelete && (
+              <TouchableOpacity
+                onPress={handleDelete}
+                style={[styles.actionButton, { backgroundColor: '#FF453A20' }]}
+                activeOpacity={0.7}
+              >
+                <Trash2 size={18} color="#FF453A" />
+              </TouchableOpacity>
+            )}
+          </View>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
-}
+};
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.cardBackground,
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: Colors.shadow,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
     elevation: 2,
-  },
-  categoryIndicator: {
-    height: 4,
+    marginBottom: 12,
   },
   content: {
-    padding: 16,
-  },
-  header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   mainInfo: {
     flex: 1,
-    marginRight: 12,
   },
-  storeName: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  metaInfo: {
+  headerRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
+    marginBottom: 4,
   },
-  categoryBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  categoryText: {
-    fontSize: 11,
-    fontWeight: '600' as const,
-  },
-  date: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  rightSection: {
-    alignItems: 'flex-end',
-    gap: 8,
+  merchant: {
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+    marginRight: 8,
   },
   amount: {
-    fontSize: 18,
-    fontWeight: '700' as const,
-    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '700',
   },
-  deleteButton: {
-    padding: 4,
+  detailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  notes: {
-    marginTop: 12,
+  category: {
     fontSize: 14,
-    color: Colors.textSecondary,
-    lineHeight: 20,
+  },
+  date: {
+    fontSize: 12,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    marginLeft: 12,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

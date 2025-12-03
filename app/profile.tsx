@@ -1,9 +1,13 @@
 import Colors from '@/constants/colors';
+import { useAuth } from '@/context/AuthContext';
 import { useCurrency } from '@/context/CurrencyContext';
+import { useTheme } from '@/context/ThemeContext';
 import { Currency, getAvailableCurrencies } from '@/utils/currency';
-import { Globe, Settings2 } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { Globe, LogOut, Moon, Settings2, Smartphone, Sun, User2 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
+    Alert,
     Modal,
     Pressable,
     ScrollView,
@@ -15,7 +19,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
+    const router = useRouter();
     const { currency, setCurrency } = useCurrency();
+    const { user, signOut } = useAuth();
+    const { theme, setTheme, colors, isDark } = useTheme();
     const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
     const currencies = getAvailableCurrencies();
 
@@ -24,43 +31,124 @@ export default function ProfileScreen() {
         setShowCurrencyPicker(false);
     };
 
+    const handleSignOut = () => {
+        Alert.alert(
+            'Sign Out',
+            'Are you sure you want to sign out?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Sign Out',
+                    style: 'destructive',
+                    onPress: async () => {
+                        const result = await signOut();
+                        if (result.success) {
+                            router.replace('/sign-in');
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
     const selectedCurrencyInfo = currencies.find(c => c.code === currency);
 
     return (
-        <SafeAreaView style={styles.container} edges={['bottom']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
             <ScrollView style={styles.scrollView}>
+                {/* Header */}
                 <View style={styles.header}>
-                    <Settings2 color={Colors.primary} size={32} />
-                    <Text style={styles.headerTitle}>Settings</Text>
+                    <Settings2 color={colors.primary} size={32} />
+                    <Text style={[styles.headerTitle, { color: colors.text }]}>Settings</Text>
                 </View>
 
+                {/* User Section */}
+                {user && (
+                    <View style={styles.section}>
+                        <View style={[styles.userCard, { backgroundColor: colors.cardBackground }]}>
+                            <View style={styles.avatarContainer}>
+                                <User2 color="#fff" size={32} />
+                            </View>
+                            <View style={styles.userInfo}>
+                                <Text style={[styles.userName, { color: colors.text }]}>{user.name}</Text>
+                                <Text style={[styles.userEmail, { color: colors.textSecondary }]}>{user.email}</Text>
+                            </View>
+                        </View>
+                    </View>
+                )}
+
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Preferences</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
+
+                    {/* Theme Selector */}
+                    <View style={[styles.settingRow, { backgroundColor: colors.cardBackground, marginBottom: 12 }]}>
+                        <View style={styles.settingInfo}>
+                            {theme === 'dark' ? <Moon color={colors.textSecondary} size={20} /> :
+                                theme === 'light' ? <Sun color={colors.textSecondary} size={20} /> :
+                                    <Smartphone color={colors.textSecondary} size={20} />}
+                            <Text style={[styles.settingLabel, { color: colors.text }]}>Appearance</Text>
+                        </View>
+                        <View style={styles.themeSelector}>
+                            <TouchableOpacity
+                                onPress={() => setTheme('light')}
+                                style={[styles.themeOption, theme === 'light' && { backgroundColor: colors.background }]}
+                            >
+                                <Sun size={16} color={theme === 'light' ? colors.primary : colors.textSecondary} />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => setTheme('dark')}
+                                style={[styles.themeOption, theme === 'dark' && { backgroundColor: colors.background }]}
+                            >
+                                <Moon size={16} color={theme === 'dark' ? colors.primary : colors.textSecondary} />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => setTheme('system')}
+                                style={[styles.themeOption, theme === 'system' && { backgroundColor: colors.background }]}
+                            >
+                                <Smartphone size={16} color={theme === 'system' ? colors.primary : colors.textSecondary} />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
 
                     <TouchableOpacity
-                        style={styles.settingRow}
+                        style={[styles.settingRow, { backgroundColor: colors.cardBackground }]}
                         onPress={() => setShowCurrencyPicker(true)}
                         accessibilityLabel="Change currency"
                         accessibilityRole="button"
                     >
                         <View style={styles.settingInfo}>
-                            <Globe color={Colors.textSecondary} size={20} />
-                            <Text style={styles.settingLabel}>Currency</Text>
+                            <Globe color={colors.textSecondary} size={20} />
+                            <Text style={[styles.settingLabel, { color: colors.text }]}>Currency</Text>
                         </View>
                         <View style={styles.settingValue}>
-                            <Text style={styles.settingValueText}>
+                            <Text style={[styles.settingValueText, { color: colors.textSecondary }]}>
                                 {selectedCurrencyInfo?.symbol} {selectedCurrencyInfo?.name}
                             </Text>
                         </View>
                     </TouchableOpacity>
                 </View>
 
+                {/* Account Section */}
+                {user && (
+                    <View style={styles.section}>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Account</Text>
+                        <TouchableOpacity
+                            style={[styles.signOutButton, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.2)' : '#FEE2E2' }]}
+                            onPress={handleSignOut}
+                            activeOpacity={0.7}
+                        >
+                            <LogOut color={colors.danger} size={20} />
+                            <Text style={[styles.signOutText, { color: colors.danger }]}>Sign Out</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>About</Text>
-                    <View style={styles.infoCard}>
-                        <Text style={styles.appName}>Budget Buddy Pro</Text>
-                        <Text style={styles.appVersion}>Version 1.0.0</Text>
-                        <Text style={styles.appDescription}>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>About</Text>
+                    <View style={[styles.infoCard, { backgroundColor: colors.cardBackground }]}>
+                        <Text style={[styles.appName, { color: colors.primary }]}>Budget Buddy Pro</Text>
+                        <Text style={[styles.appVersion, { color: colors.textSecondary }]}>Version 1.0.0</Text>
+                        <Text style={[styles.appDescription, { color: colors.textSecondary }]}>
                             Track your expenses effortlessly with receipt scanning and detailed reports.
                         </Text>
                     </View>
@@ -78,9 +166,9 @@ export default function ProfileScreen() {
                     style={styles.modalOverlay}
                     onPress={() => setShowCurrencyPicker(false)}
                 >
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Select Currency</Text>
+                    <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+                        <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+                            <Text style={[styles.modalTitle, { color: colors.text }]}>Select Currency</Text>
                         </View>
 
                         <ScrollView style={styles.currencyList}>
@@ -89,21 +177,22 @@ export default function ProfileScreen() {
                                     key={curr.code}
                                     style={[
                                         styles.currencyOption,
-                                        curr.code === currency && styles.currencyOptionSelected,
+                                        { borderBottomColor: colors.border },
+                                        curr.code === currency && { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#F0FDF4' },
                                     ]}
                                     onPress={() => handleCurrencySelect(curr.code)}
                                     accessibilityLabel={`Select ${curr.name}`}
                                     accessibilityRole="button"
                                 >
                                     <View style={styles.currencyInfo}>
-                                        <Text style={styles.currencySymbol}>{curr.symbol}</Text>
+                                        <Text style={[styles.currencySymbol, { color: colors.primary }]}>{curr.symbol}</Text>
                                         <View style={styles.currencyDetails}>
-                                            <Text style={styles.currencyName}>{curr.name}</Text>
-                                            <Text style={styles.currencyCode}>{curr.code}</Text>
+                                            <Text style={[styles.currencyName, { color: colors.text }]}>{curr.name}</Text>
+                                            <Text style={[styles.currencyCode, { color: colors.textSecondary }]}>{curr.code}</Text>
                                         </View>
                                     </View>
                                     {curr.code === currency && (
-                                        <View style={styles.checkmark}>
+                                        <View style={[styles.checkmark, { backgroundColor: colors.primary }]}>
                                             <Text style={styles.checkmarkText}>✓</Text>
                                         </View>
                                     )}
@@ -120,7 +209,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
     },
     scrollView: {
         flex: 1,
@@ -136,7 +224,6 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 28,
         fontWeight: '700' as const,
-        color: Colors.text,
     },
     section: {
         paddingHorizontal: 20,
@@ -145,17 +232,15 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: '700' as const,
-        color: Colors.text,
         marginBottom: 12,
     },
     settingRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: Colors.cardBackground,
         padding: 16,
         borderRadius: 12,
-        shadowColor: Colors.shadow,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
         shadowRadius: 2,
@@ -169,7 +254,6 @@ const styles = StyleSheet.create({
     settingLabel: {
         fontSize: 16,
         fontWeight: '600' as const,
-        color: Colors.text,
     },
     settingValue: {
         flexDirection: 'row',
@@ -177,15 +261,24 @@ const styles = StyleSheet.create({
     },
     settingValueText: {
         fontSize: 14,
-        color: Colors.textSecondary,
         fontWeight: '500' as const,
     },
+    themeSelector: {
+        flexDirection: 'row',
+        backgroundColor: 'rgba(0,0,0,0.05)',
+        borderRadius: 8,
+        padding: 4,
+        gap: 4,
+    },
+    themeOption: {
+        padding: 6,
+        borderRadius: 6,
+    },
     infoCard: {
-        backgroundColor: Colors.cardBackground,
         padding: 20,
         borderRadius: 12,
         alignItems: 'center',
-        shadowColor: Colors.shadow,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -194,19 +287,59 @@ const styles = StyleSheet.create({
     appName: {
         fontSize: 20,
         fontWeight: '700' as const,
-        color: Colors.primary,
         marginBottom: 4,
     },
     appVersion: {
         fontSize: 14,
-        color: Colors.textSecondary,
         marginBottom: 12,
     },
     appDescription: {
         fontSize: 14,
-        color: Colors.textSecondary,
         textAlign: 'center',
         lineHeight: 20,
+    },
+    userCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 20,
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+        gap: 16,
+    },
+    avatarContainer: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: Colors.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    userInfo: {
+        flex: 1,
+        gap: 4,
+    },
+    userName: {
+        fontSize: 20,
+        fontWeight: '700' as const,
+    },
+    userEmail: {
+        fontSize: 14,
+    },
+    signOutButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+        borderRadius: 12,
+        gap: 12,
+    },
+    signOutText: {
+        fontSize: 16,
+        fontWeight: '600' as const,
     },
     modalOverlay: {
         flex: 1,
@@ -214,7 +347,6 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: Colors.background,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         maxHeight: '80%',
@@ -222,12 +354,10 @@ const styles = StyleSheet.create({
     modalHeader: {
         padding: 20,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
     },
     modalTitle: {
         fontSize: 20,
         fontWeight: '700' as const,
-        color: Colors.text,
         textAlign: 'center',
     },
     currencyList: {
@@ -239,10 +369,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
-    },
-    currencyOptionSelected: {
-        backgroundColor: '#F0FDF4',
     },
     currencyInfo: {
         flexDirection: 'row',
@@ -252,7 +378,6 @@ const styles = StyleSheet.create({
     currencySymbol: {
         fontSize: 24,
         fontWeight: '700' as const,
-        color: Colors.primary,
         width: 40,
         textAlign: 'center',
     },
@@ -262,17 +387,14 @@ const styles = StyleSheet.create({
     currencyName: {
         fontSize: 16,
         fontWeight: '600' as const,
-        color: Colors.text,
     },
     currencyCode: {
         fontSize: 13,
-        color: Colors.textSecondary,
     },
     checkmark: {
         width: 24,
         height: 24,
         borderRadius: 12,
-        backgroundColor: Colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
     },

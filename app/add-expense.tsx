@@ -1,23 +1,24 @@
+import { CATEGORIES, CATEGORY_COLORS } from '@/constants/categories';
+import { useExpenses } from '@/context/ExpenseContext';
+import { useTheme } from '@/context/ThemeContext';
+import { ExpenseCategory } from '@/types/expense';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
   Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { CATEGORIES, CATEGORY_COLORS } from '@/constants/categories';
-import { ExpenseCategory } from '@/types/expense';
-import { useExpenses } from '@/context/ExpenseContext';
-import Colors from '@/constants/colors';
 
 export default function AddExpenseScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const params = useLocalSearchParams<{
     amount?: string;
     storeName?: string;
@@ -59,18 +60,19 @@ export default function AddExpenseScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
       <ScrollView style={styles.scrollView}>
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Amount *</Text>
-            <View style={styles.amountInputContainer}>
-              <Text style={styles.currencySymbol}>₹</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Amount *</Text>
+            <View style={[styles.amountInputContainer, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+              <Text style={[styles.currencySymbol, { color: colors.text }]}>₹</Text>
               <TextInput
-                style={styles.amountInput}
+                style={[styles.amountInput, { color: colors.text }]}
                 value={amount}
                 onChangeText={setAmount}
                 placeholder="0.00"
+                placeholderTextColor={colors.textLight}
                 keyboardType="decimal-pad"
                 accessibilityLabel="Expense amount"
                 autoFocus={!params.amount}
@@ -79,29 +81,31 @@ export default function AddExpenseScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Store Name *</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Store Name *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.cardBackground, borderColor: colors.border, color: colors.text }]}
               value={storeName}
               onChangeText={setStoreName}
               placeholder="Enter store name"
+              placeholderTextColor={colors.textLight}
               accessibilityLabel="Store name"
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Date</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Date</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.cardBackground, borderColor: colors.border, color: colors.text }]}
               value={date}
               onChangeText={setDate}
               placeholder="YYYY-MM-DD"
+              placeholderTextColor={colors.textLight}
               accessibilityLabel="Expense date"
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Category</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Category</Text>
             <View style={styles.categoryGrid}>
               {CATEGORIES.map((cat) => {
                 const isSelected = category === cat;
@@ -112,7 +116,8 @@ export default function AddExpenseScreen() {
                     key={cat}
                     style={[
                       styles.categoryChip,
-                      isSelected && { 
+                      { backgroundColor: colors.cardBackground, borderColor: colors.border },
+                      isSelected && {
                         backgroundColor: categoryColor,
                         borderColor: categoryColor,
                       },
@@ -125,6 +130,7 @@ export default function AddExpenseScreen() {
                     <Text
                       style={[
                         styles.categoryChipText,
+                        { color: colors.text },
                         isSelected && styles.categoryChipTextSelected,
                       ]}
                     >
@@ -137,12 +143,13 @@ export default function AddExpenseScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Notes (Optional)</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Notes (Optional)</Text>
             <TextInput
-              style={[styles.input, styles.notesInput]}
+              style={[styles.input, styles.notesInput, { backgroundColor: colors.cardBackground, borderColor: colors.border, color: colors.text }]}
               value={notes}
               onChangeText={setNotes}
               placeholder="Add any notes..."
+              placeholderTextColor={colors.textLight}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -152,14 +159,14 @@ export default function AddExpenseScreen() {
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { backgroundColor: colors.cardBackground, borderTopColor: colors.border }]}>
         <TouchableOpacity
-          style={[styles.button, styles.cancelButton]}
+          style={[styles.button, styles.cancelButton, { backgroundColor: colors.background, borderColor: colors.border }]}
           onPress={() => router.back()}
           accessibilityLabel="Cancel"
           accessibilityRole="button"
         >
-          <Text style={styles.cancelButtonText}>Cancel</Text>
+          <Text style={[styles.cancelButtonText, { color: colors.text }]}>Cancel</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -183,7 +190,6 @@ export default function AddExpenseScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   scrollView: {
     flex: 1,
@@ -197,32 +203,25 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: Colors.text,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: Colors.cardBackground,
     borderWidth: 1,
-    borderColor: Colors.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: Colors.text,
   },
   amountInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.cardBackground,
     borderWidth: 1,
-    borderColor: Colors.border,
     borderRadius: 12,
     paddingHorizontal: 16,
   },
   currencySymbol: {
     fontSize: 24,
     fontWeight: '600' as const,
-    color: Colors.text,
     marginRight: 8,
   },
   amountInput: {
@@ -230,7 +229,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 24,
     fontWeight: '600' as const,
-    color: Colors.text,
   },
   notesInput: {
     minHeight: 100,
@@ -245,14 +243,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: Colors.cardBackground,
     borderWidth: 2,
-    borderColor: Colors.border,
   },
   categoryChipText: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: Colors.text,
   },
   categoryChipTextSelected: {
     color: '#fff',
@@ -262,8 +257,6 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 12,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.cardBackground,
   },
   button: {
     flex: 1,
@@ -273,17 +266,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cancelButton: {
-    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: Colors.border,
   },
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text,
   },
   saveButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: '#10B981',
   },
   saveButtonText: {
     fontSize: 16,

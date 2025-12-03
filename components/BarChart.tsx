@@ -1,6 +1,6 @@
 import { CATEGORY_COLORS } from '@/constants/categories';
-import Colors from '@/constants/colors';
 import { useCurrency } from '@/context/CurrencyContext';
+import { useTheme } from '@/context/ThemeContext';
 import { ExpenseCategory } from '@/types/expense';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -19,11 +19,12 @@ interface BarChartProps {
 
 export function BarChart({ data }: BarChartProps) {
   const { formatCurrency } = useCurrency();
+  const { colors } = useTheme();
 
   if (data.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>No data to display</Text>
+        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No data to display</Text>
       </View>
     );
   }
@@ -40,7 +41,7 @@ export function BarChart({ data }: BarChartProps) {
           return (
             <View key={item.category} style={styles.barContainer}>
               <View style={styles.barWrapper}>
-                <Text style={styles.barValue}>{formatCurrency(item.amount, false)}</Text>
+                <Text style={[styles.barValue, { color: colors.text }]}>{formatCurrency(item.amount, false)}</Text>
                 <View
                   style={[
                     styles.bar,
@@ -51,7 +52,7 @@ export function BarChart({ data }: BarChartProps) {
                   ]}
                 />
               </View>
-              <Text style={styles.barLabel} numberOfLines={1}>
+              <Text style={[styles.barLabel, { color: colors.textSecondary }]} numberOfLines={1}>
                 {item.category}
               </Text>
             </View>
@@ -91,12 +92,10 @@ const styles = StyleSheet.create({
   barValue: {
     fontSize: 11,
     fontWeight: '700' as const,
-    color: Colors.text,
     marginBottom: 2,
   },
   barLabel: {
     fontSize: 11,
-    color: Colors.textSecondary,
     marginTop: 8,
     textAlign: 'center',
     fontWeight: '600' as const,
@@ -108,6 +107,5 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: Colors.textSecondary,
   },
 });

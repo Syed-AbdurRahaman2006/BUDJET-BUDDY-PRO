@@ -1,25 +1,34 @@
+import { AuthProvider } from '@/context/AuthContext';
+import { CurrencyProvider } from '@/context/CurrencyContext';
+import { ExpenseProvider } from '@/context/ExpenseContext';
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { CurrencyProvider } from '../context/CurrencyContext';
-import { ExpenseProvider } from '../context/ExpenseContext';
 
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
+  const { colors, isDark } = useTheme();
+
   return (
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#10B981',
+          backgroundColor: colors.cardBackground,
         },
-        headerTintColor: '#fff',
+        headerTintColor: colors.text,
         headerTitleStyle: {
           fontWeight: '600' as const,
+          color: colors.text,
+        },
+        headerShadowVisible: false,
+        contentStyle: {
+          backgroundColor: colors.background,
         },
       }}
     >
@@ -56,9 +65,25 @@ function RootLayoutNav() {
           title: 'Settings',
         }}
       />
+      <Stack.Screen
+        name="sign-in"
+        options={{
+          title: 'Sign In',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="sign-up"
+        options={{
+          title: 'Sign Up',
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
+
+
 
 export default function RootLayout() {
   useEffect(() => {
@@ -67,13 +92,17 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <CurrencyProvider>
-        <ExpenseProvider>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <RootLayoutNav />
-          </GestureHandlerRootView>
-        </ExpenseProvider>
-      </CurrencyProvider>
+      <AuthProvider>
+        <CurrencyProvider>
+          <ExpenseProvider>
+            <ThemeProvider>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <RootLayoutNav />
+              </GestureHandlerRootView>
+            </ThemeProvider>
+          </ExpenseProvider>
+        </CurrencyProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

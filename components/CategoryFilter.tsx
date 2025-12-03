@@ -1,12 +1,13 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useExpenses } from '@/context/ExpenseContext';
 import { CATEGORIES, CATEGORY_COLORS } from '@/constants/categories';
+import { useExpenses } from '@/context/ExpenseContext';
+import { useTheme } from '@/context/ThemeContext';
 import { ExpenseCategory } from '@/types/expense';
-import Colors from '@/constants/colors';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export function CategoryFilter() {
   const { selectedCategory, setSelectedCategory } = useExpenses();
+  const { colors } = useTheme();
 
   const categories: (ExpenseCategory | 'All')[] = ['All', ...CATEGORIES];
 
@@ -19,14 +20,15 @@ export function CategoryFilter() {
       >
         {categories.map((category) => {
           const isSelected = selectedCategory === category;
-          const categoryColor = category === 'All' ? Colors.text : CATEGORY_COLORS[category as ExpenseCategory];
+          const categoryColor = category === 'All' ? colors.text : CATEGORY_COLORS[category as ExpenseCategory];
 
           return (
             <TouchableOpacity
               key={category}
               style={[
                 styles.chip,
-                isSelected && { backgroundColor: categoryColor },
+                { backgroundColor: colors.cardBackground, borderColor: colors.border },
+                isSelected && { backgroundColor: categoryColor, borderColor: categoryColor },
               ]}
               onPress={() => setSelectedCategory(category as ExpenseCategory | 'All')}
               accessibilityLabel={`Filter by ${category}`}
@@ -36,6 +38,7 @@ export function CategoryFilter() {
               <Text
                 style={[
                   styles.chipText,
+                  { color: colors.text },
                   isSelected && styles.chipTextSelected,
                 ]}
               >
@@ -61,14 +64,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: Colors.cardBackground,
     borderWidth: 1,
-    borderColor: Colors.border,
   },
   chipText: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: Colors.text,
   },
   chipTextSelected: {
     color: '#fff',
