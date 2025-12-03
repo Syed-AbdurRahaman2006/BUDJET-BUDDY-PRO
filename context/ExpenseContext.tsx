@@ -1,20 +1,24 @@
-import createContextHook from '@nkzw/create-context-hook';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState, useCallback, useMemo } from 'react';
 import { Expense, ExpenseCategory, MonthlyData } from '@/types/expense';
 import { storageUtils } from '@/utils/storage';
+import createContextHook from '@nkzw/create-context-hook';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useMemo, useState } from 'react';
+import { useAuth } from './AuthContext';
 
 export const [ExpenseProvider, useExpenses] = createContextHook(() => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<ExpenseCategory | 'All'>('All');
 
   const expensesQuery = useQuery({
-    queryKey: ['expenses'],
-    queryFn: storageUtils.getExpenses,
+    queryKey: ['expenses', user?.id],
+    queryFn: () => storageUtils.getExpenses(user?.id),
+    enabled: !!user?.id,
   });
 
   const addExpenseMutation = useMutation({
     mutationFn: async (expense: Omit<Expense, 'id' | 'createdAt'>) => {
+      if (!user?.id) throw new Error('User not authenticated');
       const expenses = expensesQuery.data || [];
       const newExpense: Expense = {
         ...expense,
@@ -22,35 +26,37 @@ export const [ExpenseProvider, useExpenses] = createContextHook(() => {
         createdAt: new Date().toISOString(),
       };
       const updated = [newExpense, ...expenses];
-      await storageUtils.saveExpenses(updated);
+      await storageUtils.saveExpenses(updated, user.id);
       return updated;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(['expenses'], data);
+      queryClient.setQueryData(['expenses', user?.id], data);
     },
   });
 
   const updateExpenseMutation = useMutation({
     mutationFn: async (expense: Expense) => {
+      if (!user?.id) throw new Error('User not authenticated');
       const expenses = expensesQuery.data || [];
       const updated = expenses.map(e => e.id === expense.id ? expense : e);
-      await storageUtils.saveExpenses(updated);
+      await storageUtils.saveExpenses(updated, user.id);
       return updated;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(['expenses'], data);
+      queryClient.setQueryData(['expenses', user?.id], data);
     },
   });
 
   const deleteExpenseMutation = useMutation({
     mutationFn: async (expenseId: string) => {
+      if (!user?.id) throw new Error('User not authenticated');
       const expenses = expensesQuery.data || [];
       const updated = expenses.filter(e => e.id !== expenseId);
-      await storageUtils.saveExpenses(updated);
+      await storageUtils.saveExpenses(updated, user.id);
       return updated;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(['expenses'], data);
+      queryClient.setQueryData(['expenses', user?.id], data);
     },
   });
 
@@ -68,7 +74,7 @@ export const [ExpenseProvider, useExpenses] = createContextHook(() => {
 
     expenses.forEach(expense => {
       const monthKey = expense.date.substring(0, 7);
-      
+
       if (!monthlyMap.has(monthKey)) {
         monthlyMap.set(monthKey, {
           month: monthKey,
@@ -90,7 +96,7 @@ export const [ExpenseProvider, useExpenses] = createContextHook(() => {
       monthData.byCategory[expense.category] += expense.amount;
     });
 
-    return Array.from(monthlyMap.values()).sort((a, b) => 
+    return Array.from(monthlyMap.values()).sort((a, b) =>
       b.month.localeCompare(a.month)
     );
   }, [expensesQuery.data]);

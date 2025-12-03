@@ -1,7 +1,9 @@
 import { CATEGORIES, CATEGORY_COLORS } from '@/constants/categories';
+import { useCurrency } from '@/context/CurrencyContext';
 import { useExpenses } from '@/context/ExpenseContext';
 import { useTheme } from '@/context/ThemeContext';
 import { ExpenseCategory } from '@/types/expense';
+import { CURRENCIES } from '@/utils/currency';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -19,6 +21,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function AddExpenseScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { currency } = useCurrency();
   const params = useLocalSearchParams<{
     amount?: string;
     storeName?: string;
@@ -66,7 +69,7 @@ export default function AddExpenseScreen() {
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: colors.text }]}>Amount *</Text>
             <View style={[styles.amountInputContainer, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-              <Text style={[styles.currencySymbol, { color: colors.text }]}>₹</Text>
+              <Text style={[styles.currencySymbol, { color: colors.text }]}>{CURRENCIES[currency].symbol}</Text>
               <TextInput
                 style={[styles.amountInput, { color: colors.text }]}
                 value={amount}

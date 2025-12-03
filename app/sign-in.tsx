@@ -130,10 +130,7 @@ export default function SignInScreen() {
                                 {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
                             </View>
 
-                            {/* Forgot Password */}
-                            <TouchableOpacity style={styles.forgotPassword}>
-                                <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Forgot Password?</Text>
-                            </TouchableOpacity>
+
 
                             {/* Sign In Button */}
                             <TouchableOpacity
@@ -240,14 +237,7 @@ const styles = StyleSheet.create({
         marginTop: 4,
         marginLeft: 4,
     },
-    forgotPassword: {
-        alignSelf: 'flex-end',
-        marginBottom: 24,
-    },
-    forgotPasswordText: {
-        fontSize: 14,
-        fontWeight: '600' as const,
-    },
+
     signInButton: {
         height: 56,
         borderRadius: 12,
