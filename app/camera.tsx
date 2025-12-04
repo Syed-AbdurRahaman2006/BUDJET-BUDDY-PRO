@@ -55,7 +55,7 @@ export default function CameraScreen() {
         try {
           const base64data = reader.result as string;
           const extractedData = await extractReceiptData(base64data);
-
+    
           router.replace({
             pathname: '/add-expense',
             params: {

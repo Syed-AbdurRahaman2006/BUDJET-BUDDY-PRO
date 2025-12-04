@@ -1,4 +1,3 @@
-import Colors from '@/constants/colors';
 import { useAuth } from '@/context/AuthContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -75,15 +74,23 @@ export default function ProfileScreen() {
                 {/* User Section */}
                 {user && (
                     <View style={styles.section}>
-                        <View style={[styles.userCard, { backgroundColor: colors.cardBackground }]}>
+                        <LinearGradient
+                            colors={['#06B6D4', '#0891B2']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.userCard}
+                        >
+                            <View style={styles.userCardBackground}>
+                                <User2 size={100} color="rgba(255, 255, 255, 0.08)" />
+                            </View>
                             <View style={styles.avatarContainer}>
-                                <User2 color="#fff" size={32} />
+                                <User2 color="#06B6D4" size={32} />
                             </View>
                             <View style={styles.userInfo}>
-                                <Text style={[styles.userName, { color: colors.text }]}>{user.name}</Text>
-                                <Text style={[styles.userEmail, { color: colors.textSecondary }]}>{user.email}</Text>
+                                <Text style={styles.userName}>{user.name}</Text>
+                                <Text style={styles.userEmail}>{user.email}</Text>
                             </View>
-                        </View>
+                        </LinearGradient>
                     </View>
                 )}
 
@@ -329,37 +336,53 @@ const styles = StyleSheet.create({
     userCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 20,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: 'rgba(0, 0, 0, 0.05)',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.15,
-        shadowRadius: 6,
-        elevation: 4,
-        gap: 16,
+        padding: 24,
+        borderRadius: 20,
+        borderWidth: 0,
+        shadowColor: '#06B6D4',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
+        elevation: 8,
+        gap: 18,
+        overflow: 'hidden',
+        position: 'relative' as const,
+    },
+    userCardBackground: {
+        position: 'absolute' as const,
+        right: -10,
+        bottom: -10,
+        transform: [{ rotate: '-15deg' }],
     },
     avatarContainer: {
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: Colors.primary,
+        backgroundColor: '#fff',
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 3,
-        borderColor: Colors.primary,
+        borderWidth: 0,
+        shadowColor: 'rgba(0, 0, 0, 0.1)',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 5,
     },
     userInfo: {
         flex: 1,
-        gap: 4,
+        gap: 6,
     },
     userName: {
         fontSize: 20,
         fontWeight: '700' as const,
+        letterSpacing: 0.3,
+        color: '#fff',
     },
     userEmail: {
         fontSize: 14,
+        opacity: 0.9,
+        letterSpacing: 0.2,
+        color: '#fff',
     },
     signOutGradient: {
         borderRadius: 12,

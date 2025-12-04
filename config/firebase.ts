@@ -12,15 +12,12 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase only if it hasn't been initialized yet
-let app;
-if (getApps().length === 0) {
-    app = initializeApp(firebaseConfig);
-} else {
-    app = getApp();
-}
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // Initialize Auth
-// Note: Persistence is handled via AsyncStorage in AuthContext
+// Note: Firebase Auth persistence in React Native is handled at the application level
+// via onAuthStateChanged in AuthContext, which saves/loads user data from AsyncStorage.
+// This approach provides reliable auth state persistence across app restarts.
 const auth = getAuth(app);
 
 export { auth };

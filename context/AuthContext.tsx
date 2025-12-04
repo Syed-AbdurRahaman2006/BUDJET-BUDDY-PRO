@@ -79,13 +79,28 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Listen to auth state changes
+    // Load persisted user from AsyncStorage on app startup
+    useEffect(() => {
+        const loadPersistedUser = async () => {
+            try {
+                const savedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
+                if (savedUser) {
+                    setUser(JSON.parse(savedUser));
+                }
+            } catch (err) {
+                console.error('Failed to load persisted user:', err);
+            }
+        };
+        loadPersistedUser();
+    }, []);
+
+    // Listen to auth state changes from Firebase
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
                 const appUser = convertFirebaseUser(firebaseUser);
                 setUser(appUser);
-                // Save to AsyncStorage for offline access
+                // Save to AsyncStorage for persistence across app restarts
                 await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(appUser));
             } else {
                 setUser(null);
