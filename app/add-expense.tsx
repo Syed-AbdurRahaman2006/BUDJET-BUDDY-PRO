@@ -5,7 +5,8 @@ import { useTheme } from '@/context/ThemeContext';
 import { ExpenseCategory } from '@/types/expense';
 import { CURRENCIES } from '@/utils/currency';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { Calendar, Trash2 } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -23,19 +24,30 @@ export default function AddExpenseScreen() {
   const { colors } = useTheme();
   const { currency } = useCurrency();
   const params = useLocalSearchParams<{
+    id?: string;
     amount?: string;
     storeName?: string;
     date?: string;
     category?: ExpenseCategory;
+    notes?: string;
   }>();
 
-  const { addExpense, isAdding } = useExpenses();
+  const { addExpense, updateExpense, deleteExpense, isAdding, isUpdating, isDeleting, expenses } = useExpenses();
 
-  const [amount, setAmount] = useState(params.amount || '');
-  const [storeName, setStoreName] = useState(params.storeName || '');
-  const [date, setDate] = useState(params.date || new Date().toISOString().split('T')[0]);
-  const [category, setCategory] = useState<ExpenseCategory>(params.category || 'Other');
-  const [notes, setNotes] = useState('');
+  const isEditing = !!params.id;
+  const existingExpense = isEditing ? expenses.find(e => e.id === params.id) : null;
+
+  const [amount, setAmount] = useState(existingExpense?.amount.toString() || params.amount || '');
+  const [storeName, setStoreName] = useState(existingExpense?.storeName || params.storeName || '');
+  const [date, setDate] = useState(existingExpense?.date || params.date || new Date().toISOString().split('T')[0]);
+  const [category, setCategory] = useState<ExpenseCategory>(existingExpense?.category || params.category || 'Other');
+  const [notes, setNotes] = useState(existingExpense?.notes || params.notes || '');
+
+  useEffect(() => {
+    if (isEditing) {
+      router.setParams({ title: 'Edit Expense' });
+    }
+  }, [isEditing]);
 
   const handleSave = () => {
     if (!amount || !storeName) {
@@ -49,17 +61,49 @@ export default function AddExpenseScreen() {
       return;
     }
 
-    addExpense({
+    const expenseData = {
       amount: amountNum,
       storeName: storeName.trim(),
       category,
       date,
       notes: notes.trim(),
-    });
+    };
 
-    Alert.alert('Success', 'Expense added successfully!', [
-      { text: 'OK', onPress: () => router.back() },
-    ]);
+    if (isEditing && params.id) {
+      updateExpense({
+        ...expenseData,
+        id: params.id,
+        createdAt: existingExpense?.createdAt || new Date().toISOString(),
+      });
+      Alert.alert('Success', 'Expense updated successfully!', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } else {
+      addExpense(expenseData);
+      Alert.alert('Success', 'Expense added successfully!', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    }
+  };
+
+  const handleDelete = () => {
+    if (!params.id) return;
+
+    Alert.alert(
+      'Delete Expense',
+      'Are you sure you want to delete this expense?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            deleteExpense(params.id!);
+            router.back();
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -68,14 +112,14 @@ export default function AddExpenseScreen() {
         <View style={styles.form}>
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: colors.text }]}>Amount *</Text>
-            <View style={[styles.amountInputContainer, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-              <Text style={[styles.currencySymbol, { color: colors.text }]}>{CURRENCIES[currency].symbol}</Text>
+            <View style={[styles.amountInputContainer, { backgroundColor: colors.cardBackground, borderColor: colors.primary }]}>
+              <Text style={[styles.currencySymbol, { color: colors.primary }]}>{CURRENCIES[currency].symbol}</Text>
               <TextInput
                 style={[styles.amountInput, { color: colors.text }]}
                 value={amount}
                 onChangeText={setAmount}
                 placeholder="0.00"
-                placeholderTextColor={colors.textLight}
+                placeholderTextColor={colors.textSecondary}
                 keyboardType="decimal-pad"
                 accessibilityLabel="Expense amount"
                 autoFocus={!params.amount}
@@ -90,21 +134,24 @@ export default function AddExpenseScreen() {
               value={storeName}
               onChangeText={setStoreName}
               placeholder="Enter store name"
-              placeholderTextColor={colors.textLight}
+              placeholderTextColor={colors.textSecondary}
               accessibilityLabel="Store name"
             />
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: colors.text }]}>Date</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.cardBackground, borderColor: colors.border, color: colors.text }]}
-              value={date}
-              onChangeText={setDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.textLight}
-              accessibilityLabel="Expense date"
-            />
+            <View style={[styles.dateInputContainer, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+              <Calendar color={colors.textSecondary} size={20} />
+              <TextInput
+                style={[styles.dateInput, { color: colors.text }]}
+                value={date}
+                onChangeText={setDate}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.textSecondary}
+                accessibilityLabel="Expense date"
+              />
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
@@ -152,7 +199,7 @@ export default function AddExpenseScreen() {
               value={notes}
               onChangeText={setNotes}
               placeholder="Add any notes..."
-              placeholderTextColor={colors.textLight}
+              placeholderTextColor={colors.textSecondary}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -163,6 +210,22 @@ export default function AddExpenseScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { backgroundColor: colors.cardBackground, borderTopColor: colors.border }]}>
+        {isEditing && (
+          <TouchableOpacity
+            style={[styles.button, styles.deleteButton, { borderColor: colors.danger }]}
+            onPress={handleDelete}
+            disabled={isDeleting}
+            accessibilityLabel="Delete expense"
+            accessibilityRole="button"
+          >
+            {isDeleting ? (
+              <ActivityIndicator color={colors.danger} />
+            ) : (
+              <Trash2 color={colors.danger} size={24} />
+            )}
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={[styles.button, styles.cancelButton, { backgroundColor: colors.background, borderColor: colors.border }]}
           onPress={() => router.back()}
@@ -173,16 +236,16 @@ export default function AddExpenseScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.button, styles.saveButton, isAdding && styles.buttonDisabled]}
+          style={[styles.button, styles.saveButton, (isAdding || isUpdating) && styles.buttonDisabled, isEditing && { flex: 2 }]}
           onPress={handleSave}
-          disabled={isAdding}
+          disabled={isAdding || isUpdating}
           accessibilityLabel="Save expense"
           accessibilityRole="button"
         >
-          {isAdding ? (
+          {isAdding || isUpdating ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.saveButtonText}>Save Expense</Text>
+            <Text style={styles.saveButtonText}>{isEditing ? 'Update Expense' : 'Save Expense'}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -204,38 +267,69 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    marginBottom: 8,
+    fontSize: 15,
+    fontWeight: '700' as const,
+    marginBottom: 10,
+    letterSpacing: 0.3,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    borderRadius: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
     fontSize: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
   amountInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    borderWidth: 2,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
   currencySymbol: {
-    fontSize: 24,
-    fontWeight: '600' as const,
-    marginRight: 8,
+    fontSize: 32,
+    fontWeight: '700' as const,
+    marginRight: 12,
   },
   amountInput: {
     flex: 1,
-    paddingVertical: 14,
-    fontSize: 24,
-    fontWeight: '600' as const,
+    paddingVertical: 20,
+    fontSize: 32,
+    fontWeight: '700' as const,
   },
   notesInput: {
-    minHeight: 100,
-    paddingTop: 14,
+    minHeight: 120,
+    paddingTop: 16,
+    borderRadius: 16,
+    textAlignVertical: 'top',
+  },
+  dateInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 18,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  dateInput: {
+    flex: 1,
+    paddingVertical: 16,
+    fontSize: 16,
   },
   categoryGrid: {
     flexDirection: 'row',
@@ -243,14 +337,19 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 24,
     borderWidth: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   categoryChipText: {
-    fontSize: 14,
-    fontWeight: '600' as const,
+    fontSize: 15,
+    fontWeight: '700' as const,
   },
   categoryChipTextSelected: {
     color: '#fff',
@@ -260,30 +359,46 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 12,
     borderTopWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
   },
   button: {
     flex: 1,
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 18,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
   },
   cancelButton: {
     borderWidth: 1,
   },
   cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600' as const,
+    fontSize: 17,
+    fontWeight: '700' as const,
   },
   saveButton: {
     backgroundColor: '#10B981',
   },
   saveButtonText: {
-    fontSize: 16,
-    fontWeight: '600' as const,
+    fontSize: 17,
+    fontWeight: '700' as const,
     color: '#fff',
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  deleteButton: {
+    borderWidth: 1,
+    marginRight: 8,
+    width: 56,
+    flex: 0,
   },
 });

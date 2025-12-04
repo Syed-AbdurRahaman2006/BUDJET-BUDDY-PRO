@@ -1,23 +1,31 @@
-import { CATEGORY_COLORS } from '@/constants/categories';
 import { useCurrency } from '@/context/CurrencyContext';
 import { useTheme } from '@/context/ThemeContext';
-import { ExpenseCategory } from '@/types/expense';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+const CATEGORY_ICONS: { [key: string]: string } = {
+  'Healthcare': '🏥',
+  'Travel': '✈️',
+  'Bills': '🧾',
+  'Shopping': '🛍️',
+  'Entertainment': '🎭',
+  'Food': '🍔',
+};
+
 const CHART_HEIGHT = 200;
 
-interface BarChartData {
-  category: ExpenseCategory;
-  amount: number;
-  percentage: number;
+interface BarChartDataItem {
+  label: string;
+  value: number;
+  color: string;
 }
 
 interface BarChartProps {
-  data: BarChartData[];
+  data: BarChartDataItem[];
+  height?: number;
 }
 
-export function BarChart({ data }: BarChartProps) {
+export function BarChart({ data, height = CHART_HEIGHT }: BarChartProps) {
   const { formatCurrency } = useCurrency();
   const { colors } = useTheme();
 
@@ -29,31 +37,33 @@ export function BarChart({ data }: BarChartProps) {
     );
   }
 
-  const maxAmount = Math.max(...data.map(d => d.amount));
+  const maxValue = Math.max(...data.map(d => d.value));
 
   return (
     <View style={styles.container}>
-      <View style={styles.chart}>
+      <View style={[styles.chart, { height: height + 60 }]}>
         {data.map((item) => {
-          const barHeight = (item.amount / maxAmount) * CHART_HEIGHT;
-          const color = CATEGORY_COLORS[item.category];
+          const barHeight = (item.value / maxValue) * height;
 
           return (
-            <View key={item.category} style={styles.barContainer}>
+            <View key={item.label} style={styles.barContainer}>
               <View style={styles.barWrapper}>
-                <Text style={[styles.barValue, { color: colors.text }]}>{formatCurrency(item.amount, false)}</Text>
+                {CATEGORY_ICONS[item.label] && (
+                  <Text style={styles.categoryIcon}>{CATEGORY_ICONS[item.label]}</Text>
+                )}
+                <Text style={[styles.barValue, { color: colors.text }]}>{formatCurrency(item.value, false)}</Text>
                 <View
                   style={[
                     styles.bar,
                     {
                       height: barHeight,
-                      backgroundColor: color,
+                      backgroundColor: item.color,
                     },
                   ]}
                 />
               </View>
               <Text style={[styles.barLabel, { color: colors.textSecondary }]} numberOfLines={1}>
-                {item.category}
+                {item.label}
               </Text>
             </View>
           );
@@ -71,7 +81,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-around',
-    height: CHART_HEIGHT + 60,
     paddingTop: 20,
   },
   barContainer: {
@@ -99,6 +108,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
     fontWeight: '600' as const,
+  },
+  categoryIcon: {
+    fontSize: 16,
+    marginBottom: 4,
   },
   emptyContainer: {
     height: CHART_HEIGHT,

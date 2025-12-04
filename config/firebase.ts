@@ -2,13 +2,13 @@ import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-    apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-    measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
+    apiKey: "AIzaSyD2d3JsOKvRndYff0Rdnd_5x5fvrJzkaks",
+    authDomain: "budget-buddy-pro-cc2d3.firebaseapp.com",
+    projectId: "budget-buddy-pro-cc2d3",
+    storageBucket: "budget-buddy-pro-cc2d3.firebasestorage.app",
+    messagingSenderId: "728022338862",
+    appId: "1:728022338862:web:a20155865e2ee627dd7ebf",
+    measurementId: "G-QW5XEFY1VY"
 };
 
 // Initialize Firebase only if it hasn't been initialized yet
@@ -20,6 +20,7 @@ if (getApps().length === 0) {
 }
 
 // Initialize Auth
+// Note: Persistence is handled via AsyncStorage in AuthContext
 const auth = getAuth(app);
 
 export { auth };

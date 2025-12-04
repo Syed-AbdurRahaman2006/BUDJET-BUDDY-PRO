@@ -2,7 +2,7 @@ import { Expense, ExpenseCategory, MonthlyData } from '@/types/expense';
 import { storageUtils } from '@/utils/storage';
 import createContextHook from '@nkzw/create-context-hook';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from './AuthContext';
 
 export const [ExpenseProvider, useExpenses] = createContextHook(() => {
@@ -10,11 +10,26 @@ export const [ExpenseProvider, useExpenses] = createContextHook(() => {
   const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<ExpenseCategory | 'All'>('All');
 
+  // Query configuration with proper refetch settings
   const expensesQuery = useQuery({
     queryKey: ['expenses', user?.id],
     queryFn: () => storageUtils.getExpenses(user?.id),
     enabled: !!user?.id,
+    staleTime: 0, // Always refetch to ensure fresh data
+    refetchOnMount: true, // Refetch when component mounts
+    refetchOnWindowFocus: false, // Don't refetch on window focus (mobile app)
   });
+
+  // Refetch expenses when user changes (login/logout)
+  useEffect(() => {
+    if (user?.id) {
+      // User logged in - refetch their data
+      queryClient.invalidateQueries({ queryKey: ['expenses', user.id] });
+    } else {
+      // User logged out - clear all expense queries
+      queryClient.removeQueries({ queryKey: ['expenses'] });
+    }
+  }, [user?.id, queryClient]);
 
   const addExpenseMutation = useMutation({
     mutationFn: async (expense: Omit<Expense, 'id' | 'createdAt'>) => {

@@ -3,8 +3,9 @@ import { useAuth } from '@/context/AuthContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import { useTheme } from '@/context/ThemeContext';
 import { Currency, getAvailableCurrencies } from '@/utils/currency';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Globe, LogOut, Moon, Settings2, Smartphone, Sun, User2 } from 'lucide-react-native';
+import { ArrowLeft, Globe, LogOut, Moon, Settings2, Smartphone, Sun, User2 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
     Alert,
@@ -54,12 +55,21 @@ export default function ProfileScreen() {
     const selectedCurrencyInfo = currencies.find(c => c.code === currency);
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
             <ScrollView style={styles.scrollView}>
                 {/* Header */}
-                <View style={styles.header}>
-                    <Settings2 color={colors.primary} size={32} />
-                    <Text style={[styles.headerTitle, { color: colors.text }]}>Settings</Text>
+                <View>
+                    <LinearGradient
+                        colors={isDark ? ['rgba(16, 185, 129, 0.05)', 'rgba(16, 185, 129, 0.01)'] : ['rgba(255, 255, 255, 0.8)', 'rgba(16, 185, 129, 0.05)']}
+                        style={styles.headerGradient}
+                    />
+                    <View style={styles.header}>
+                        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                            <ArrowLeft color={colors.text} size={24} />
+                        </TouchableOpacity>
+                        <Settings2 color={colors.primary} size={32} />
+                        <Text style={[styles.headerTitle, { color: colors.text }]}>Settings</Text>
+                    </View>
                 </View>
 
                 {/* User Section */}
@@ -78,14 +88,14 @@ export default function ProfileScreen() {
                 )}
 
                 <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>🔧 Preferences</Text>
 
                     {/* Theme Selector */}
                     <View style={[styles.settingRow, { backgroundColor: colors.cardBackground, marginBottom: 12 }]}>
                         <View style={styles.settingInfo}>
-                            {theme === 'dark' ? <Moon color={colors.textSecondary} size={20} /> :
-                                theme === 'light' ? <Sun color={colors.textSecondary} size={20} /> :
-                                    <Smartphone color={colors.textSecondary} size={20} />}
+                            {theme === 'dark' ? <Moon color="#A78BFA" size={20} /> :
+                                theme === 'light' ? <Sun color="#F59E0B" size={20} /> :
+                                    <Smartphone color="#3B82F6" size={20} />}
                             <Text style={[styles.settingLabel, { color: colors.text }]}>Appearance</Text>
                         </View>
                         <View style={styles.themeSelector}>
@@ -117,7 +127,7 @@ export default function ProfileScreen() {
                         accessibilityRole="button"
                     >
                         <View style={styles.settingInfo}>
-                            <Globe color={colors.textSecondary} size={20} />
+                            <Globe color="#3B82F6" size={20} />
                             <Text style={[styles.settingLabel, { color: colors.text }]}>Currency</Text>
                         </View>
                         <View style={styles.settingValue}>
@@ -131,22 +141,27 @@ export default function ProfileScreen() {
                 {/* Account Section */}
                 {user && (
                     <View style={styles.section}>
-                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Account</Text>
-                        <TouchableOpacity
-                            style={[styles.signOutButton, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.2)' : '#FEE2E2' }]}
-                            onPress={handleSignOut}
-                            activeOpacity={0.7}
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>👤 Account</Text>
+                        <LinearGradient
+                            colors={isDark ? ['rgba(239, 68, 68, 0.25)', 'rgba(239, 68, 68, 0.15)'] : ['#FEE2E2', '#FECACA']}
+                            style={styles.signOutGradient}
                         >
-                            <LogOut color={colors.danger} size={20} />
-                            <Text style={[styles.signOutText, { color: colors.danger }]}>Sign Out</Text>
-                        </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.signOutButton}
+                                onPress={handleSignOut}
+                                activeOpacity={0.7}
+                            >
+                                <LogOut color={colors.danger} size={20} />
+                                <Text style={[styles.signOutText, { color: colors.danger }]}>Sign Out</Text>
+                            </TouchableOpacity>
+                        </LinearGradient>
                     </View>
                 )}
 
                 <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>About</Text>
-                    <View style={[styles.infoCard, { backgroundColor: colors.cardBackground }]}>
-                        <Text style={[styles.appName, { color: colors.primary }]}>Budget Buddy Pro</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>ℹ️ About</Text>
+                    <View style={[styles.infoCard, { backgroundColor: colors.cardBackground, borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.2)' }]}>
+                        <Text style={[styles.appName, { color: colors.primary, fontWeight: '800' }]}>Budget Buddy Pro</Text>
                         <Text style={[styles.appVersion, { color: colors.textSecondary }]}>Version 1.0.0</Text>
                         <Text style={[styles.appDescription, { color: colors.textSecondary }]}>
                             Track your expenses effortlessly with receipt scanning and detailed reports.
@@ -217,9 +232,19 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingTop: 20,
+        paddingTop: 10,
         paddingBottom: 16,
         gap: 12,
+    },
+    headerGradient: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        height: 80,
+    },
+    backButton: {
+        marginRight: 8,
     },
     headerTitle: {
         fontSize: 28,
@@ -240,11 +265,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 16,
         borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(0, 0, 0, 0.05)',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 1,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 3,
     },
     settingInfo: {
         flexDirection: 'row',
@@ -278,11 +305,12 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 12,
         alignItems: 'center',
+        borderWidth: 1,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+        elevation: 4,
     },
     appName: {
         fontSize: 20,
@@ -303,11 +331,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
         borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(0, 0, 0, 0.05)',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+        elevation: 4,
         gap: 16,
     },
     avatarContainer: {
@@ -317,6 +347,8 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 3,
+        borderColor: Colors.primary,
     },
     userInfo: {
         flex: 1,
@@ -329,12 +361,21 @@ const styles = StyleSheet.create({
     userEmail: {
         fontSize: 14,
     },
+    signOutGradient: {
+        borderRadius: 12,
+        shadowColor: '#EF4444',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+        elevation: 4,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+    },
     signOutButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         padding: 16,
-        borderRadius: 12,
         gap: 12,
     },
     signOutText: {

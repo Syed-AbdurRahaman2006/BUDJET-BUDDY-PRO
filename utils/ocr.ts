@@ -2,7 +2,7 @@
 import { CATEGORY_KEYWORDS } from "@/constants/categories";
 import { ExpenseCategory } from "@/types/expense";
 import * as ImageManipulator from "expo-image-manipulator";
-const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+const GEMINI_API_KEY = "AIzaSyCFBXvHiqpK-DXSfWRhr3ZluaSLQRh5iow";
 
 console.log("🔑 Gemini API Key loaded:", GEMINI_API_KEY ? "✅ Yes" : "❌ No");
 

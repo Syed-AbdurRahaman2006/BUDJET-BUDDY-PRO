@@ -35,8 +35,7 @@ function RootLayoutNav() {
       <Stack.Screen
         name="index"
         options={{
-          title: 'Budget Buddy Pro',
-          headerShown: true,
+          headerShown: false,  // Hide header to avoid duplicate
         }}
       />
       <Stack.Screen
@@ -56,13 +55,13 @@ function RootLayoutNav() {
       <Stack.Screen
         name="monthly-report"
         options={{
-          title: 'Monthly Report',
+          headerShown: false,  // Hide header to avoid duplicate
         }}
       />
       <Stack.Screen
         name="profile"
         options={{
-          title: 'Settings',
+          headerShown: false,  // Hide header to avoid duplicate
         }}
       />
       <Stack.Screen

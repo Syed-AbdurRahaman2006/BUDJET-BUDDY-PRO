@@ -1,25 +1,41 @@
 import { DarkColors, LightColors } from '@/constants/colors';
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useColorScheme } from 'react-native';
+import { useAuth } from './AuthContext';
 
 type ThemeType = 'light' | 'dark' | 'system';
 
-const THEME_STORAGE_KEY = '@budget_buddy_theme';
+const THEME_KEY_PREFIX = '@budget_buddy_theme_';
 
 export const [ThemeProvider, useTheme] = createContextHook(() => {
     const systemColorScheme = useColorScheme();
+    const { user } = useAuth();
     const [themePreference, setThemePreference] = useState<ThemeType>('system');
     const [isLoaded, setIsLoaded] = useState(false);
 
-    // Load saved theme preference
+    // Get user-specific storage key
+    const getThemeKey = useCallback((userId?: string) => {
+        return `${THEME_KEY_PREFIX}${userId || 'default'}`;
+    }, []);
+
+    // Load saved theme preference when user changes
     useEffect(() => {
         const loadTheme = async () => {
             try {
-                const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+                setIsLoaded(false);
+                if (!user?.id) {
+                    setThemePreference('system');
+                    return;
+                }
+
+                const key = getThemeKey(user.id);
+                const savedTheme = await AsyncStorage.getItem(key);
                 if (savedTheme) {
                     setThemePreference(savedTheme as ThemeType);
+                } else {
+                    setThemePreference('system');
                 }
             } catch (error) {
                 console.error('Failed to load theme:', error);
@@ -28,7 +44,7 @@ export const [ThemeProvider, useTheme] = createContextHook(() => {
             }
         };
         loadTheme();
-    }, []);
+    }, [user?.id, getThemeKey]);
 
     // Determine active theme
     const activeTheme = useMemo(() => {
@@ -46,8 +62,11 @@ export const [ThemeProvider, useTheme] = createContextHook(() => {
     // Update theme preference
     const setTheme = async (newTheme: ThemeType) => {
         try {
+            if (!user?.id) return;
+
             setThemePreference(newTheme);
-            await AsyncStorage.setItem(THEME_STORAGE_KEY, newTheme);
+            const key = getThemeKey(user.id);
+            await AsyncStorage.setItem(key, newTheme);
         } catch (error) {
             console.error('Failed to save theme:', error);
         }

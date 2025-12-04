@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import Colors from '@/constants/colors';
+import { extractReceiptData } from '@/utils/ocr';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { useRouter } from 'expo-router';
+import { Camera as CameraIcon, X } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useRouter } from 'expo-router';
-import { X, Camera as CameraIcon } from 'lucide-react-native';
-import * as ImageManipulator from 'expo-image-manipulator';
-import { extractReceiptData } from '@/utils/ocr';
-import Colors from '@/constants/colors';
 
 export default function CameraScreen() {
   const router = useRouter();
@@ -134,7 +134,7 @@ export default function CameraScreen() {
           <View style={styles.topBar}>
             <TouchableOpacity
               style={styles.closeButton}
-              onPress={() => router.back()}
+              onPress={() => router.push('/')}
               accessibilityLabel="Close camera"
               accessibilityRole="button"
             >

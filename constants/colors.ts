@@ -1,36 +1,43 @@
+const tintColorLight = '#10B981'; // Green theme
+const tintColorDark = '#fff';
+
 export const LightColors = {
-  primary: '#10B981',
-  primaryDark: '#059669',
-  secondary: '#3B82F6',
-  background: '#F9FAFB',
-  cardBackground: '#FFFFFF',
-  text: '#111827',
-  textSecondary: '#6B7280',
-  textLight: '#9CA3AF',
-  border: '#E5E7EB',
-  success: '#10B981',
-  danger: '#EF4444',
-  warning: '#F59E0B',
-  shadow: 'rgba(0, 0, 0, 0.08)',
-  inputBackground: '#F9FAFB',
+    text: '#11181C',
+    textSecondary: '#687076',
+    background: '#fff',
+    cardBackground: '#f9f9f9',
+    tint: tintColorLight,
+    icon: '#687076',
+    tabIconDefault: '#687076',
+    tabIconSelected: tintColorLight,
+    primary: '#10B981',  // Green theme
+    danger: '#ef4444',
+    border: '#e5e5e5',
 };
 
 export const DarkColors = {
-  primary: '#10B981', // Keep primary green
-  primaryDark: '#059669',
-  secondary: '#60A5FA', // Lighter blue for dark mode
-  background: '#111827', // Very dark gray (almost black)
-  cardBackground: '#1F2937', // Dark gray
-  text: '#F9FAFB', // White-ish
-  textSecondary: '#9CA3AF', // Light gray
-  textLight: '#6B7280', // Darker gray
-  border: '#374151', // Dark border
-  success: '#34D399', // Lighter green
-  danger: '#F87171', // Lighter red
-  warning: '#FBBF24', // Lighter yellow
-  shadow: 'rgba(0, 0, 0, 0.3)', // Stronger shadow for dark mode
-  inputBackground: '#374151',
+    text: '#ECEDEE',
+    textSecondary: '#9BA1A6',
+    background: '#151718',
+    cardBackground: '#1c1c1e',
+    tint: tintColorDark,
+    icon: '#9BA1A6',
+    tabIconDefault: '#9BA1A6',
+    tabIconSelected: tintColorDark,
+    primary: '#10B981',  // Green theme
+    danger: '#ef4444',
+    border: '#333',
 };
 
-export default LightColors;
-
+export default {
+    light: LightColors,
+    dark: DarkColors,
+    // Default fallback for direct imports
+    primary: '#10B981',  // Green theme
+    text: '#11181C',
+    textSecondary: '#687076',
+    background: '#fff',
+    cardBackground: '#f9f9f9',
+    danger: '#ef4444',
+    border: '#e5e5e5',
+};

@@ -15,7 +15,9 @@ export const storageUtils = {
       }
       const key = getExpensesKey(userId);
       const data = await AsyncStorage.getItem(key);
-      return data ? JSON.parse(data) : [];
+      const expenses = data ? JSON.parse(data) : [];
+      console.log(`Loaded ${expenses.length} expenses for user: ${userId}`);
+      return expenses;
     } catch (error) {
       console.error('Error loading expenses:', error);
       return [];
@@ -30,6 +32,7 @@ export const storageUtils = {
       }
       const key = getExpensesKey(userId);
       await AsyncStorage.setItem(key, JSON.stringify(expenses));
+      console.log(`Saved ${expenses.length} expenses for user: ${userId}`);
     } catch (error) {
       console.error('Error saving expenses:', error);
       throw error;
